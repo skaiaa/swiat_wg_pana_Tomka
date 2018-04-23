@@ -3,9 +3,10 @@
 #include <exception>
 #include <vector>
 #include <set>
+#include <string>
 using std::exception;
 using std::vector;
-using std::multiset;
+using std::string;
 class Organism;
 class Action {
 public:
@@ -29,6 +30,10 @@ public:
 	virtual bool isTryingToCatchIt() { return false; }
 	virtual Location getCatch() {
 		throw exception("No one is running away!");
+	}
+	virtual bool isActivatingSpecialAbility() { return false; }
+	virtual string getAbility() {
+		throw exception("I cannot do anything special.");
 	}
 	virtual vector<Organism*> kills() = 0;
 };
@@ -90,5 +95,15 @@ public:
 	virtual vector<Organism*> kills() { return vector<Organism*>(); }
 };
 
+class ActivatingSpecialAbility : public Action {
+protected:
+	string ability;
+	vector<Organism*>toKill;
+public:
+	ActivatingSpecialAbility(string ability, vector<Organism*>toKill) : ability(ability),toKill(toKill) {};
+	virtual bool isActivatingSpecialAbility() { return true; }
+	virtual string getAbility() { return ability; }
+	virtual vector<Organism*> kills() { return toKill; }
+};
 
 

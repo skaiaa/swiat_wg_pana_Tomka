@@ -3,7 +3,6 @@
 #include <iostream>
 #include "organism.h"
 #include <conio.h>
-
 #define KB_UP 72
 #define KB_DOWN 80
 #define KB_LEFT 75
@@ -15,6 +14,7 @@ protected:
 public:
 	Animal(int initialStrength) { strength = initialStrength; }
 	virtual int getStrength() { return strength; }
+	virtual void setStrength(int s) { strength = s; };
 	virtual void setStep(int newStep) { step = newStep; }
 	virtual Location chooseNewLocation(Location fromWhere) {
 		Location changeInLocation(0, 0);
@@ -117,19 +117,28 @@ class Human : public Animal {
 protected:
 	Location myMove = Location(0, 0);
 	int magicPotion = 0;
+	int usingSpecialAbility=-1;
 	bool waitingForArrow = false;
+	string specialAbilityName = "Magic potion";
 public:
 	Human() : Animal(5) {}
 	virtual string getName() { return "Human"; }
 	virtual const int getInitiative() const { return 4; }
 	virtual char getSymbol() { return 'H'; }
+	virtual int getStrength() { return strength + magicPotion; }
 	virtual void keyPressed(int key); 
 	virtual Action* action(vector<Organism*>organisms) {
 		int key = _getch();
 		keyPressed(key);
 		if (waitingForArrow)keyPressed(_getch());
 		if (myMove != Location(0, 0)) return new Moving(getLocation()+myMove, vector<Organism*>());
+		else if (magicPotion == 5) return new ActivatingSpecialAbility(specialAbilityName, vector<Organism*>());
 		else return new DoNothing;
 	}
+	virtual void growOlder() { 
+		if (magicPotion > 0) magicPotion--;
+		if ((usingSpecialAbility > 0)&&(usingSpecialAbility<12))usingSpecialAbility++;
+		if (usingSpecialAbility == 12)usingSpecialAbility = -1;
+		age++; }
 };
 #endif

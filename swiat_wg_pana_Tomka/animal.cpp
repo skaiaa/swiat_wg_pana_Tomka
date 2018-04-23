@@ -15,7 +15,10 @@ Action* Turtle::action(vector<Organism*>organisms) {
 void Human::keyPressed(int key) {
 	switch (key) {
 	case 'p':
-		magicPotion = 5;
+		if ((usingSpecialAbility < 0)){
+			magicPotion = 5;
+			usingSpecialAbility = 1;
+		}
 		waitingForArrow = false;
 		break;
 	case KB_UP:

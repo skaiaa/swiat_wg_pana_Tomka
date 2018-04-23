@@ -167,6 +167,9 @@ bool World::playRound() {
 			}
 
 		}
+		if (action->isActivatingSpecialAbility()) {
+			writeLog(organism->getName()+" just activated "+action->getAbility());
+		}
 		if (!action->isDoingNothing())if (_getch() == 27)return false;
 		delete action;
 		if(!killedOneself)organism->growOlder();
@@ -180,12 +183,16 @@ bool World::playRound() {
 bool World::performKillingSpree(vector<Organism*>*killed,Organism* killer, Organism* organismAlreadyThere,vector<Organism*> *tmpOrganisms) {
 	bool killedOneself = false;
 	for (vector<Organism*>::iterator victim = killed->begin(); victim != killed->end(); ++victim) {
-		string NameOfVictim = (*victim)->getName();
-		string NameOfKiller = killer->getName();
+		string nameOfVictim = (*victim)->getName();
+		string nameOfKiller = killer->getName();
 		if (!(*victim)->isImmuneToKillingBy(killer)) {
 			if ((*victim)->getLocation() == killer->getLocation()) {
 				killedOneself = true;
-				NameOfKiller = organismAlreadyThere->getName();
+				nameOfKiller = organismAlreadyThere->getName();
+			}
+			if ((*victim)->isIncreasingStrength()) {
+				killer->setStrength(killer->getStrength() + (*victim)->getIncrease());
+				writeLog(nameOfVictim + " increased strength of " + nameOfKiller + " by " + to_string((*victim)->getIncrease()));
 			}
 			int positionInRound = getPositionInVector(*victim, *tmpOrganisms);
 			int positionInWorld = getPositionInVector(*victim, World::organisms);
@@ -193,7 +200,7 @@ bool World::performKillingSpree(vector<Organism*>*killed,Organism* killer, Organ
 				delete World::organisms[getPositionInVector(*victim, World::organisms)];
 				World::organisms.erase(World::organisms.begin() + positionInWorld);
 			}
-		writeLog(NameOfVictim  + " was killed by " + NameOfKiller);
+		writeLog(nameOfVictim  + " was eaten by " + nameOfKiller);
 		}
 	return killedOneself;
 }

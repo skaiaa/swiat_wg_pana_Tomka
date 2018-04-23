@@ -13,6 +13,7 @@ public:
 	Plant(int Probability) { spreadingProbability = Probability; }
 	virtual const int getInitiative() const { return 0; }
 	virtual int getStrength() { return 0; }
+	virtual void setStrength(int s) { };
 	virtual Location chooseNewLocation(Location fromWhere) {
 		Location changeInLocation(0, 0);
 		while ((changeInLocation.x == 0) && (changeInLocation.y == 0)
@@ -77,6 +78,8 @@ public:
 	Guarana() : Plant(30) {}
 	virtual string getName() { return "Guarana"; }
 	virtual char getSymbol() { return 'u'; }
+	virtual bool isIncreasingStrength() { return true; }
+	virtual int getIncrease() { return 3; }
 };
 class Belladonna :public Plant {
 public:
