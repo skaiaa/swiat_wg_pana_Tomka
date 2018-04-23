@@ -25,16 +25,16 @@ public:
 	}
 
 	static vector<Organism*> getInitialOrganisms(int width, int height) {
-		string allSymbols = "WSATFgusdb";//bardzo wazny string
+		string allSymbols = "WWSSAATTFFgguussddbb";//bardzo wazny string
 		vector<Organism*> initialOrganisms;
 		for (int i = 0; i < allSymbols.size(); i++) {//tutaj robie po jednym kazdego rodzaju
 			initialOrganisms.push_back(getOrganism(allSymbols[i]));
 		}
 		int k;
-		for (int i = 0; i < 0.2*width*height-allSymbols.size(); i++) {
+		/*for (int i = 0; i < 0.2*width*height-allSymbols.size(); i++) {
 			k= rand() % allSymbols.size();
 			initialOrganisms.push_back(getOrganism(allSymbols[k]));
-		}
+		}*/
 		initialOrganisms.push_back(getOrganism('H'));//dodanie czlowieka na koniec
 		for (vector<Organism*>::iterator i = initialOrganisms.begin(); i != initialOrganisms.end(); ++i) {
 			(*i)->setLocation(getFreeAndRandomLocation(initialOrganisms, width, height));

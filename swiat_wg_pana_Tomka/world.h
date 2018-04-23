@@ -35,19 +35,20 @@ private:
 	unsigned int width, height, fields;
 	Organism* myHuman;
 	vector<Organism*> organisms;//multiset<Organism*>
-	int numberOfLogs = 0;
+	int numberOfLogs = 0, numberOfTurns=0;
 	vector<string> allLogs;
 protected:
 public:
 	World(int width, int height);
 	void drawOrganisms();
 	void gotoxy(int x, int y);
-	void playRound();
+	bool playRound();
 	Location* handleWorldsEdges(Location* location);
 	Organism* whoIsThere(Location location);
-	bool performKillingSpree(vector<Organism*>*killed, Organism* killer,vector<Organism*> *tmpOrganisms);//to organizmy, ktore maja akcje w tej turze
+	bool performKillingSpree(vector<Organism*>*killed, Organism* killer,Organism* organismAlreadyThere,vector<Organism*> *tmpOrganisms);//to organizmy, ktore maja akcje w tej turze
 	int getPositionInVector(Organism* victim, vector<Organism*> organisms);
 	void writeLog(string log);
+	void writeLog();
 	//Location* getActionLocation();
 	~World();
 		//void playRound();

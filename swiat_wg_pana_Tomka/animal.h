@@ -19,7 +19,7 @@ public:
 	virtual Location chooseNewLocation(Location fromWhere) {
 		Location changeInLocation(0, 0);
 		while ((changeInLocation.x == 0) && (changeInLocation.y == 0)
-			&&(getLocation()==(fromWhere + changeInLocation))) {//nie wylosuje miejsca gdzie stoje, kiedy rozmnazam
+			||(getLocation()==(fromWhere + changeInLocation))) {//nie wylosuje miejsca gdzie stoje, kiedy rozmnazam
 			if((rand()%1)==0) changeInLocation = { (rand() % 2 * step + 1) - step,0};
 			else changeInLocation = { 0,(rand() % 2 * step + 1) - step };
 			

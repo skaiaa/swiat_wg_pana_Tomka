@@ -5,10 +5,10 @@ int main() {
 	srand(time(NULL));
 	int width, height;
 	scanf_s("%i %i", &width, &height);
-	//system("cls");
+	system("cls");
 	World earth(width, height);
 	//earth.drawOrganisms();
-	earth.playRound();
+	while(earth.playRound());
 	
 	return 0;
 }

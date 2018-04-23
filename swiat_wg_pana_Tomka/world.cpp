@@ -8,9 +8,10 @@ void World::gotoxy(int x, int y) {
 
 World::World(int width, int height) : width(width),height(height),fields(width*height) {
 	organisms = organismGenerator::getInitialOrganisms(width, height);//dodaje czlowieka na koniec
-	if (!organisms.empty())
-		myHuman = organisms.back();
+	//if (!organisms.empty())
+		//myHuman = organisms.back();
 	sort(organisms.begin(), organisms.end(), organismGenerator::compareByInitiativeAndAge);
+	writeLog("Anna Przybycien 172126");
 };
 void World::writeLog(string log) {
 	//if (numberOfLogs < MAX_NUMBER_Of_LOGS) {
@@ -30,7 +31,11 @@ void World::writeLog(string log) {
 	//	for (int j = 0; j < numberOfLogs; j++)cout << allLogs.at(j);
 	//}
 }
+void World::writeLog() {
+	gotoxy(START_X_LOGS, START_Y_LOGS -1);
+	cout << "Turn: "<<numberOfTurns;
 
+}
 void World::drawOrganisms() {
 	bool organismOnField = false;
 	//gotoxy(START_X_BOARD, START_Y_BOARD);
@@ -73,11 +78,13 @@ Location* World::handleWorldsEdges(Location *location) {
 //	return new Location(0, 0);
 //}
 
-void World::playRound() {
-	string log;
+bool World::playRound() {
+	//string log;
 	vector<Organism*> tmpOrganisms = World::organisms;//jak w trakcie tury dodam cos do organizmow to nie moge iterowac po czyms do czego dodaje
 	//for (vector<Organism*>::iterator organism = tmpOrganisms.begin(); organism != tmpOrganisms.end(); ++organism) {
 	while(!tmpOrganisms.empty()){
+		numberOfTurns++;
+		writeLog();
 		Organism* organism = tmpOrganisms[0];
 		if (organism->getSymbol() == 'H')writeLog("Your turn!");
 		bool killedOneself = false;
@@ -102,13 +109,15 @@ void World::playRound() {
 					if (organismOnPlace == NULL) {
 						writeLog("Succesfully reproduced!");
 						Organism* child = organismGenerator::getOrganism(organism->getSymbol());
+						child->setLocation(l);
 						World::organisms.push_back(child);
+						drawOrganisms();
 						//organismGenerator::sortByInitiativeAndAge(World::organisms);
 					}
 				}
 				if (collision->isFighting()) {
 					writeLog(organism->getName() + " is fighting with " + organismAlreadyThere->getName());
-					killedOneself = performKillingSpree(&(collision->kills()), organism, &tmpOrganisms);
+					killedOneself = performKillingSpree(&(collision->kills()), organism, organismAlreadyThere, &tmpOrganisms);
 					if (!killedOneself) {//tutaj cos sie nie zabija:C
 						organism->setLocation(collision->getFight());
 					}
@@ -129,7 +138,7 @@ void World::playRound() {
 					else {//rozpatrzec porazke z ucieczka
 						writeLog(organismAlreadyThere->getName() + " didn't manage to run away!");
 						Location possibleLocation = organismAlreadyThere->getLocation(); 
-						killedOneself = performKillingSpree(&(collision->kills()), organism, &tmpOrganisms);
+						killedOneself = performKillingSpree(&(collision->kills()), organism, organismAlreadyThere,&tmpOrganisms);
 						if (!killedOneself) {
 							organism->setLocation(possibleLocation);
 						}
@@ -158,27 +167,25 @@ void World::playRound() {
 			}
 
 		}
-		if (!action->isDoingNothing())_getch();
+		if (!action->isDoingNothing())if (_getch() == 27)return false;
 		delete action;
 		if(!killedOneself)organism->growOlder();
 		tmpOrganisms.erase(tmpOrganisms.begin());
 	}
 	sort(World::organisms.begin(), World::organisms.end(), organismGenerator::compareByInitiativeAndAge);
 	drawOrganisms();
+	if (_getch() == 27)return false;
 
 }
-bool World::performKillingSpree(vector<Organism*>*killed,Organism* killer, vector<Organism*> *tmpOrganisms) {
+bool World::performKillingSpree(vector<Organism*>*killed,Organism* killer, Organism* organismAlreadyThere,vector<Organism*> *tmpOrganisms) {
 	bool killedOneself = false;
 	for (vector<Organism*>::iterator victim = killed->begin(); victim != killed->end(); ++victim) {
-		bool tmp = !(*victim)->isImmuneToKillingBy(killer);
 		string NameOfVictim = (*victim)->getName();
-		string NameOfKiller = (killer)->getName();
+		string NameOfKiller = killer->getName();
 		if (!(*victim)->isImmuneToKillingBy(killer)) {
 			if ((*victim)->getLocation() == killer->getLocation()) {
 				killedOneself = true;
-				string tmp = NameOfKiller;
-				NameOfKiller = NameOfVictim;
-				NameOfVictim = tmp;
+				NameOfKiller = organismAlreadyThere->getName();
 			}
 			int positionInRound = getPositionInVector(*victim, *tmpOrganisms);
 			int positionInWorld = getPositionInVector(*victim, World::organisms);
