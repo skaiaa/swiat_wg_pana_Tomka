@@ -77,100 +77,106 @@ bool World::playRound() {
 	//string log;
 	vector<Organism*> tmpOrganisms = World::organisms;//jak w trakcie tury dodam cos do organizmow to nie moge iterowac po czyms do czego dodaje
 	while(!tmpOrganisms.empty()){
-		numberOfTurns++;
 		writeLog();
-		Organism* organism = tmpOrganisms[0];
-		if (organism->getSymbol() == 'H')writeLog("Your turn!");
-		bool killedOneself = false;
-		//system("cls");
+		//Organism* organism = tmpOrganisms[0];
+		if ((tmpOrganisms[0])->getSymbol() == 'H')writeLog("Your turn!");
+		//bool killedOneself = false;
 		drawOrganisms();
-		Action* action = organism->action(World::organisms);
-		if (action->isMoving()) {
-			Location location = action->getMove();
-			Organism* organismAlreadyThere = whoIsThere(&location);
-			if (organismAlreadyThere == NULL) {
-				writeLog(organism->getName() + " moving to " + to_string(location.y) +" "+to_string(location.x));
-				organism->setLocation(location);
-			} 
-			else {
-				Action* collision=organism->collision(organismAlreadyThere,location);//obsluzyc kolizje
-				if (collision->isReproducing()) {
-					Location l = collision->getReproduce();//musze obsluzyc teraz boki planszy!!!
-					//handleWorldsEdges(&l);
-					writeLog(organism->getName() + " trying to reproduce on " + to_string(location.y) + " "+ to_string(location.x));
-					Organism* organismOnPlace = whoIsThere(&l);
-					if (organismOnPlace == NULL) {
-						writeLog("Succesfully reproduced!");
-						Organism* child = organismGenerator::getOrganism(organism->getSymbol());
-						child->setLocation(l);
-						World::organisms.push_back(child);
-						drawOrganisms();
-					}
-				}
-				if (collision->isFighting()) {
-					writeLog(organism->getName() + " is fighting with " + organismAlreadyThere->getName());
-					killedOneself = performKillingSpree(&(collision->kills()), organism, organismAlreadyThere, &tmpOrganisms);
-					if (!killedOneself) {//tutaj cos sie nie zabija:C
-						organism->setLocation(collision->getFight());
-					}
-				}
-				if (collision->isTryingToCatchIt()) {
-					writeLog(organism->getName() + " is trying to catch " + organismAlreadyThere->getName());
-					Location l=collision->getCatch();
-					//handleWorldsEdges(&l);
-					writeLog(organismAlreadyThere->getName() + " is trying to run away to "+ to_string(l.y) +" "+ to_string(l.x));
-					Organism* organismOnPlace = whoIsThere(&l);
-					if (organismOnPlace == NULL) {//rozpatrzec sukces w ucieczce
-						writeLog(organismAlreadyThere->getName() + " succesfully run away!");
-						organism->setLocation(organismAlreadyThere->getLocation());
-						organismAlreadyThere->setLocation(collision->getCatch());
-						//organism zmienia lokacje na location z getmove(tam gdzie byl organismAlreadyThere, mozna najpierw)
-						//organismAlreadyThere zmienia swoja lokacje na ta z getcatch
-					}
-					else {//rozpatrzec porazke z ucieczka
-						writeLog(organismAlreadyThere->getName() + " didn't manage to run away!");
-						Location possibleLocation = organismAlreadyThere->getLocation(); 
-						killedOneself = performKillingSpree(&(collision->kills()), organism, organismAlreadyThere,&tmpOrganisms);
-						if (!killedOneself) {
-							organism->setLocation(possibleLocation);
-						}
-						//jesli zabity jest organism atakowany to zmienic lokalizacje atakujacego na tego organismAlreadyThere
-						//jesli zabity jest organism atakujacy to go zabic
-					}
-				}
-				delete collision;
-		    }
-
-		}
-		if (action->isSpreading()) {
-			vector<Location> spread = action->getSpread();
-			for (vector<Location>::iterator l = spread.begin(); l != spread.end(); ++l) {
-				Location location = *l;
-				//cout << organism->getSymbol() << "trying spreading to " << location.y << " " << location.x << endl;
-				//handleWorldsEdges(&location);
-				Organism* organismAlreadyThere = whoIsThere(&location);
-				if (organismAlreadyThere == NULL) {
-					Organism* newOrganism = organismGenerator::getOrganism(organism->getSymbol());
-					newOrganism->setLocation(location);
-					writeLog(organism->getName() + " spreading to " + to_string(location.y) + " " +to_string(location.x));
-					World::organisms.push_back(newOrganism);
-				}
-			}
-
-		}
-		if (action->isActivatingSpecialAbility()) {
-			writeLog(organism->getName()+" just activated "+action->getAbility());
-		}
-		if (!action->isDoingNothing())if (_getch() == 27)return false;
-		delete action;
-		if(!killedOneself)organism->growOlder();
-		tmpOrganisms.erase(tmpOrganisms.begin());
+		if (executeActionsAndCheckEndOfGame(tmpOrganisms[0], (tmpOrganisms[0])->action(World::organisms), &tmpOrganisms))return false;
+		numberOfTurns++;
 	}
 	sort(World::organisms.begin(), World::organisms.end(), organismGenerator::compareByInitiativeAndAge);
 	drawOrganisms();
-	if (_getch() == 27)return false;
-
+	if (_getch() == KB_ESCAPE)return false;
+	else return true;
 }
+bool World::executeActionsAndCheckEndOfGame(Organism* organism, Action* action, vector<Organism*> *tmpOrganisms) {
+	bool killedOneself = false;
+	bool canSpread=true;
+	if (action->isMoving()) {
+		Location location = action->getMove();
+		Organism* organismAlreadyThere = whoIsThere(&location);
+		if (organismAlreadyThere == NULL) {
+			writeLog(organism->getName() + " moving to " + to_string(location.y) + " " + to_string(location.x));
+			organism->setLocation(location);
+		}
+		else {//kolizje
+			killedOneself = executeCollisionsAndCheckIfKilledOneself(organism, organism->collision(organismAlreadyThere, location), organismAlreadyThere, tmpOrganisms);
+		}
+	}
+	if (action->isSpreading()) {
+		vector<Location> spread = action->getSpread();
+		for (vector<Location>::iterator l = spread.begin(); l != spread.end(); ++l) {
+			Location location = *l;
+			Organism* organismAlreadyThere = whoIsThere(&location);
+			//writeLog(organism->getName() + " trying to spread to " + to_string(location.y) + " " + to_string(location.x));
+			if (organismAlreadyThere == NULL) {
+				Organism* newOrganism = organismGenerator::getOrganism(organism->getSymbol());
+				newOrganism->setLocation(location);
+				writeLog(organism->getName() + " is spreading to " + to_string(location.y) + " " + to_string(location.x));
+				World::organisms.push_back(newOrganism);
+				canSpread = true;
+			}
+		}
+	}
+	if (action->isActivatingSpecialAbility()) {
+		writeLog(organism->getName() + " just activated " + action->getAbility());
+	}
+	tmpOrganisms->erase(tmpOrganisms->begin());
+	if (!(action->isDoingNothing()) && canSpread ) { if (_getch() == KB_ESCAPE) return true; }
+	delete action;
+	if (!killedOneself)organism->growOlder();
+	return false;
+}
+bool World::executeCollisionsAndCheckIfKilledOneself(Organism* organism, Action* collision, Organism* organismAlreadyThere, vector<Organism*>*tmpOrganisms) {
+	bool killedOneself = false;
+		if (collision->isReproducing()) {
+			Location location = collision->getReproduce();//musze obsluzyc teraz boki planszy!!!
+			writeLog(organism->getName() + " trying to reproduce on " + to_string(location.y) + " " + to_string(location.x));
+			Organism* organismOnPlace = whoIsThere(&location);
+			if (organismOnPlace == NULL) {
+				writeLog("Succesfully reproduced!");
+				Organism* child = organismGenerator::getOrganism(organism->getSymbol());
+				child->setLocation(location);
+				World::organisms.push_back(child);
+				drawOrganisms();
+			}
+		}
+		if (collision->isFighting()) {
+			writeLog(organism->getName() + " is trying to eat " + organismAlreadyThere->getName());
+			killedOneself = performKillingSpree(&(collision->kills()), organism, organismAlreadyThere, tmpOrganisms);
+			if (!killedOneself) {//tutaj cos sie nie zabija:C
+				organism->setLocation(collision->getFight());
+			}
+		}
+		if (collision->isTryingToCatchIt()) {
+			writeLog(organism->getName() + " is trying to catch " + organismAlreadyThere->getName());
+			Location l = collision->getCatch();
+			writeLog(organismAlreadyThere->getName() + " is trying to run away to " + to_string(l.y) + " " + to_string(l.x));
+			Organism* organismOnPlace = whoIsThere(&l);
+			if (organismOnPlace == NULL) {//rozpatrzec sukces w ucieczce
+				writeLog(organismAlreadyThere->getName() + " succesfully run away!");
+				organism->setLocation(organismAlreadyThere->getLocation());
+				organismAlreadyThere->setLocation(collision->getCatch());
+				//organism zmienia lokacje na location z getmove(tam gdzie byl organismAlreadyThere, mozna najpierw)
+				//organismAlreadyThere zmienia swoja lokacje na ta z getcatch
+			}
+			else {//rozpatrzec porazke z ucieczka
+				writeLog(organismAlreadyThere->getName() + " didn't manage to run away!");
+				Location possibleLocation = organismAlreadyThere->getLocation();
+				killedOneself = performKillingSpree(&(collision->kills()), organism, organismAlreadyThere, tmpOrganisms);
+				if (!killedOneself) {
+					organism->setLocation(possibleLocation);
+				}
+				//jesli zabity jest organism atakowany to zmienic lokalizacje atakujacego na tego organismAlreadyThere
+				//jesli zabity jest organism atakujacy to go zabic
+			}
+		}
+		delete collision;
+		return killedOneself;
+}
+
+
 //tutaj zabijamy i sprawdzamy czy nazs organism sie nie zabil od razu
 bool World::performKillingSpree(vector<Organism*>*killed,Organism* killer, Organism* organismAlreadyThere,vector<Organism*> *tmpOrganisms) {
 	bool killedOneself = false;

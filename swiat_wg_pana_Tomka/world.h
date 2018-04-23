@@ -15,25 +15,11 @@
 #define START_Y_BOARD 4
 #define START_X_LOGS 40
 #define START_Y_LOGS 3
-//using std::multiset;
-//
-//template <typename T, typename Pred = std::less<T>>
-//struct ptr_compare : Pred
-//{
-//	ptr_compare(Pred const & p = Pred()) : Pred(p) { }
-//
-//	bool operator()(T const * p1, T const * p2) const
-//	{
-//		return Pred::operator()(*p1, *p2);
-//	}
-//};
-//
-//typedef std::multiset<Organism*, ptr_compare<Organism>> node_ptr_set;
+#define KB_ESCAPE 27
 
 class World {
 private:
 	unsigned int width, height, fields;
-	Organism* myHuman;
 	vector<Organism*> organisms;//multiset<Organism*>
 	int numberOfLogs = 0, numberOfTurns=0;
 	vector<string> allLogs;
@@ -49,9 +35,9 @@ public:
 	int getPositionInVector(Organism* victim, vector<Organism*> organisms);
 	void writeLog(string log);
 	void writeLog();
-	//Location* getActionLocation();
+	bool executeActionsAndCheckEndOfGame(Organism* organism, Action* action, vector<Organism*> *tmpOrganisms);
+	bool executeCollisionsAndCheckIfKilledOneself(Organism* organism, Action* collision, Organism* organismAlreadyThere, vector<Organism*>*tmpOrganisms);
 	~World();
-		//void playRound();
-		//~World();
+
 };
 #endif 
