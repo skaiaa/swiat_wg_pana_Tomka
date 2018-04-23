@@ -30,7 +30,7 @@ public:
 		for (int i = 0; i < allSymbols.size(); i++) {//tutaj robie po jednym kazdego rodzaju
 			initialOrganisms.push_back(getOrganism(allSymbols[i]));
 		}
-		int k;
+		int k;//tutaj sa losowe zwierzaki
 		/*for (int i = 0; i < 0.2*width*height-allSymbols.size(); i++) {
 			k= rand() % allSymbols.size();
 			initialOrganisms.push_back(getOrganism(allSymbols[k]));
@@ -39,7 +39,7 @@ public:
 		for (vector<Organism*>::iterator i = initialOrganisms.begin(); i != initialOrganisms.end(); ++i) {
 			(*i)->setLocation(getFreeAndRandomLocation(initialOrganisms, width, height));
 		}
-		//sort(initialOrganisms.begin(), initialOrganisms.end(), compareByInitiativeAndAge);
+		sort(initialOrganisms.begin(), initialOrganisms.end(), compareByInitiativeAndAge);
 		return initialOrganisms;
 	}
 	static bool compareByInitiativeAndAge(const Organism* l,const Organism* r) {

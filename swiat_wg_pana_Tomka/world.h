@@ -44,7 +44,7 @@ public:
 	void gotoxy(int x, int y);
 	bool playRound();
 	Location* handleWorldsEdges(Location* location);
-	Organism* whoIsThere(Location location);
+	Organism* whoIsThere(Location* location);
 	bool performKillingSpree(vector<Organism*>*killed, Organism* killer,Organism* organismAlreadyThere,vector<Organism*> *tmpOrganisms);//to organizmy, ktore maja akcje w tej turze
 	int getPositionInVector(Organism* victim, vector<Organism*> organisms);
 	void writeLog(string log);

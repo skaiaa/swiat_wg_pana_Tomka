@@ -3,7 +3,7 @@
 #include <iostream>
 #include "organism.h"
 #include <conio.h>
-#define KB_UP 72
+#define KB_UP 72//dla czlowieka, zeby wiedzial, gdzie isc
 #define KB_DOWN 80
 #define KB_LEFT 75
 #define KB_RIGHT 77
@@ -16,48 +16,18 @@ public:
 	virtual int getStrength() { return strength; }
 	virtual void setStrength(int s) { strength = s; };
 	virtual void setStep(int newStep) { step = newStep; }
-	virtual Location chooseNewLocation(Location fromWhere) {
-		Location changeInLocation(0, 0);
-		while ((changeInLocation.x == 0) && (changeInLocation.y == 0)
-			||(getLocation()==(fromWhere + changeInLocation))) {//nie wylosuje miejsca gdzie stoje, kiedy rozmnazam
-			if((rand()%1)==0) changeInLocation = { (rand() % 2 * step + 1) - step,0};
-			else changeInLocation = { 0,(rand() % 2 * step + 1) - step };
-			
-		}
-		return fromWhere + changeInLocation;
-	}
+	virtual Location chooseNewLocation(Location fromWhere);
 	virtual Action* action(vector<Organism*>organisms) {
 		return new Moving(chooseNewLocation(getLocation()), vector<Organism*>());
 	}
-	virtual Action* collision(Organism* withOrganism,Location place) {
-		if (withOrganism->getSymbol() == getSymbol())return new Reproducing(chooseNewLocation(place));
-		else {
-			vector<Organism*>toKill;
-			if (withOrganism->getStrength() <= getStrength()) {
-				toKill.push_back(withOrganism);
-			}
-			else {
-				toKill.push_back(this);//przegral i sam sie zabija:(
-			}
-			if (withOrganism->isDeflectingAttack(this)) {
-				return new DoNothing;
-			}
-			if (withOrganism->isRunningAway()) {
-				return new TryingToCatchIt(withOrganism->chooseNewLocation(place), toKill);
-			}
-			return new Fighting(place, toKill);
-		} 
-	}
-	//virtual void collision() {
-	//	
-	//}
+	virtual Action* collision(Organism* withOrganism, Location place);
 }; 
 
 class Wolf : public Animal {
 public:
 	Wolf(): Animal(9) {}//ta lista inicjalizacyjna(po dwukropku)
 	//jest magiczna i sie wywola przed konstruktorem
-	//nawet consty moge to zainicjalizowac:OOOOOOOOOOOOO
+	//nawet consty moge to zainicjalizowac,np:
 	/*
 	class Animal : public Organism {
 	protected:
@@ -117,9 +87,9 @@ class Human : public Animal {
 protected:
 	Location myMove = Location(0, 0);
 	int magicPotion = 0;
-	int usingSpecialAbility=-1;
+	int usingSpecialAbility=0;
 	bool waitingForArrow = false;
-	string specialAbilityName = "Magic potion";
+	string specialAbilityName = "magic potion";
 public:
 	Human() : Animal(5) {}
 	virtual string getName() { return "Human"; }
@@ -127,18 +97,8 @@ public:
 	virtual char getSymbol() { return 'H'; }
 	virtual int getStrength() { return strength + magicPotion; }
 	virtual void keyPressed(int key); 
-	virtual Action* action(vector<Organism*>organisms) {
-		int key = _getch();
-		keyPressed(key);
-		if (waitingForArrow)keyPressed(_getch());
-		if (myMove != Location(0, 0)) return new Moving(getLocation()+myMove, vector<Organism*>());
-		else if (magicPotion == 5) return new ActivatingSpecialAbility(specialAbilityName, vector<Organism*>());
-		else return new DoNothing;
-	}
-	virtual void growOlder() { 
-		if (magicPotion > 0) magicPotion--;
-		if ((usingSpecialAbility > 0)&&(usingSpecialAbility<12))usingSpecialAbility++;
-		if (usingSpecialAbility == 12)usingSpecialAbility = -1;
-		age++; }
+	virtual Action* action(vector<Organism*>organisms);
+	virtual void growOlder();
+		
 };
 #endif

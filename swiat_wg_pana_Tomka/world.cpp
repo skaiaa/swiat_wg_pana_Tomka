@@ -7,10 +7,7 @@ void World::gotoxy(int x, int y) {
 }
 
 World::World(int width, int height) : width(width),height(height),fields(width*height) {
-	organisms = organismGenerator::getInitialOrganisms(width, height);//dodaje czlowieka na koniec
-	//if (!organisms.empty())
-		//myHuman = organisms.back();
-	sort(organisms.begin(), organisms.end(), organismGenerator::compareByInitiativeAndAge);
+	organisms = organismGenerator::getInitialOrganisms(width, height);
 	writeLog("Anna Przybycien 172126");
 };
 void World::writeLog(string log) {
@@ -55,10 +52,11 @@ void World::drawOrganisms() {
 		}
 	}
 }
-Organism* World::whoIsThere(Location location) {
+Organism* World::whoIsThere(Location* location) {
+	handleWorldsEdges(location);
 	Organism* org = NULL;
 	for (vector<Organism*>::iterator o = World::organisms.begin(); o != World::organisms.end(); ++o) {
-		if ((*o)->getLocation() == location) {
+		if ((*o)->getLocation() == *location) {
 			org = *o;
 			break;
 		}
@@ -74,14 +72,10 @@ Location* World::handleWorldsEdges(Location *location) {
 	//uzyc mozna tego w whoIsThere, a nawet trzeba
 	return location;
 }
-//Location* World::getActionLocation() {
-//	return new Location(0, 0);
-//}
 
 bool World::playRound() {
 	//string log;
 	vector<Organism*> tmpOrganisms = World::organisms;//jak w trakcie tury dodam cos do organizmow to nie moge iterowac po czyms do czego dodaje
-	//for (vector<Organism*>::iterator organism = tmpOrganisms.begin(); organism != tmpOrganisms.end(); ++organism) {
 	while(!tmpOrganisms.empty()){
 		numberOfTurns++;
 		writeLog();
@@ -92,9 +86,8 @@ bool World::playRound() {
 		drawOrganisms();
 		Action* action = organism->action(World::organisms);
 		if (action->isMoving()) {
-			Location location = action->getMove();//musze obsluzyc teraz boki planszy!!!
-			handleWorldsEdges(&location);
-			Organism* organismAlreadyThere = whoIsThere(location);
+			Location location = action->getMove();
+			Organism* organismAlreadyThere = whoIsThere(&location);
 			if (organismAlreadyThere == NULL) {
 				writeLog(organism->getName() + " moving to " + to_string(location.y) +" "+to_string(location.x));
 				organism->setLocation(location);
@@ -103,16 +96,15 @@ bool World::playRound() {
 				Action* collision=organism->collision(organismAlreadyThere,location);//obsluzyc kolizje
 				if (collision->isReproducing()) {
 					Location l = collision->getReproduce();//musze obsluzyc teraz boki planszy!!!
-					handleWorldsEdges(&l);
+					//handleWorldsEdges(&l);
 					writeLog(organism->getName() + " trying to reproduce on " + to_string(location.y) + " "+ to_string(location.x));
-					Organism* organismOnPlace = whoIsThere(l);
+					Organism* organismOnPlace = whoIsThere(&l);
 					if (organismOnPlace == NULL) {
 						writeLog("Succesfully reproduced!");
 						Organism* child = organismGenerator::getOrganism(organism->getSymbol());
 						child->setLocation(l);
 						World::organisms.push_back(child);
 						drawOrganisms();
-						//organismGenerator::sortByInitiativeAndAge(World::organisms);
 					}
 				}
 				if (collision->isFighting()) {
@@ -125,9 +117,9 @@ bool World::playRound() {
 				if (collision->isTryingToCatchIt()) {
 					writeLog(organism->getName() + " is trying to catch " + organismAlreadyThere->getName());
 					Location l=collision->getCatch();
-					handleWorldsEdges(&l);
+					//handleWorldsEdges(&l);
 					writeLog(organismAlreadyThere->getName() + " is trying to run away to "+ to_string(l.y) +" "+ to_string(l.x));
-					Organism* organismOnPlace = whoIsThere(l);
+					Organism* organismOnPlace = whoIsThere(&l);
 					if (organismOnPlace == NULL) {//rozpatrzec sukces w ucieczce
 						writeLog(organismAlreadyThere->getName() + " succesfully run away!");
 						organism->setLocation(organismAlreadyThere->getLocation());
@@ -155,14 +147,13 @@ bool World::playRound() {
 			for (vector<Location>::iterator l = spread.begin(); l != spread.end(); ++l) {
 				Location location = *l;
 				//cout << organism->getSymbol() << "trying spreading to " << location.y << " " << location.x << endl;
-				handleWorldsEdges(&location);
-				Organism* organismAlreadyThere = whoIsThere(location);
+				//handleWorldsEdges(&location);
+				Organism* organismAlreadyThere = whoIsThere(&location);
 				if (organismAlreadyThere == NULL) {
 					Organism* newOrganism = organismGenerator::getOrganism(organism->getSymbol());
 					newOrganism->setLocation(location);
 					writeLog(organism->getName() + " spreading to " + to_string(location.y) + " " +to_string(location.x));
 					World::organisms.push_back(newOrganism);
-					//organismGenerator::sortByInitiativeAndAge(World::organisms);
 				}
 			}
 
@@ -180,6 +171,7 @@ bool World::playRound() {
 	if (_getch() == 27)return false;
 
 }
+//tutaj zabijamy i sprawdzamy czy nazs organism sie nie zabil od razu
 bool World::performKillingSpree(vector<Organism*>*killed,Organism* killer, Organism* organismAlreadyThere,vector<Organism*> *tmpOrganisms) {
 	bool killedOneself = false;
 	for (vector<Organism*>::iterator victim = killed->begin(); victim != killed->end(); ++victim) {
