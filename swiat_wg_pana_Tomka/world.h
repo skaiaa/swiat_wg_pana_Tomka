@@ -11,10 +11,12 @@
 #include <Windows.h>
 #include <conio.h>
 #define MAX_NUMBER_Of_LOGS 10
-#define START_X_BOARD 4
-#define START_Y_BOARD 4
+#define START_X_BOARD 2
+#define START_Y_BOARD 2
 #define START_X_LOGS 40
-#define START_Y_LOGS 3
+#define START_Y_LOGS 7
+#define START_X_LEGEND 40
+#define START_Y_LEGEND 0
 #define KB_ESCAPE 27
 
 class World {
@@ -35,9 +37,14 @@ public:
 	int getPositionInVector(Organism* victim, vector<Organism*> organisms);
 	void writeLog(string log);
 	void writeLog();
+	void writeLegend();
+	string readNameOfFile();
 	bool executeActionsAndCheckEndOfGame(Organism* organism, Action* action, vector<Organism*> *tmpOrganisms);
 	bool executeCollisionsAndCheckIfKilledOneself(Organism* organism, Action* collision, Organism* organismAlreadyThere, vector<Organism*>*tmpOrganisms);
-	~World();
+	bool manageKeysPressed(int key);
+	void saveToFile();
+	void loadFromFile();
+	void killAllOrganisms();
 
 };
 #endif 

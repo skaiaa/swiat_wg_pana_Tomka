@@ -10,6 +10,7 @@ using std::string;
 using std::vector;
 using std::exception;
 using std::cout;
+using std::to_string;
 
 class Organism {
 private:
@@ -32,9 +33,10 @@ public:
 	virtual void growOlder() { age++; }
 	//virtual void registerObserver(Commentator commentator)=0;
 	virtual const int getInitiative() const = 0;
-	virtual char getSymbol() = 0;
+	virtual char getSymbol() { return 'o'; };
 	virtual int getStrength() = 0;
 	virtual void setStrength(int s) = 0;
+	virtual string getInfoForSave() { return to_string(getSymbol())+to_string(age)+"\n"; }
 	//bede zwracac nowe akcje, potem je kasowac(delete) w worldzie po wykonaniu akcji
 	virtual Action* collision(Organism* collider,Location where) = 0;
 	

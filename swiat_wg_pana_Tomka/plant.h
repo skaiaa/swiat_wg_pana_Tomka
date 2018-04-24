@@ -14,6 +14,9 @@ public:
 	virtual const int getInitiative() const { return 0; }
 	virtual int getStrength() { return 0; }
 	virtual void setStrength(int s) { };
+	virtual string getInfoForSave() {
+		return to_string(getSymbol()) + " " + to_string(spreadingProbability) +" "+to_string(getLocation().x)+" "+to_string(getLocation().y)+"\n";
+	}
 	virtual Location chooseNewLocation(Location fromWhere) {
 		Location changeInLocation(0, 0);
 		while ((changeInLocation.x == 0) && (changeInLocation.y == 0)

@@ -65,7 +65,7 @@ void Human::keyPressed(int key) {
 		break;
 	case KB_DOWN:
 		if (waitingForArrow)
-			myMove = Location(1, 0);//
+			myMove = Location(1, 0);
 		waitingForArrow = false;
 		break;
 	case KB_LEFT:
@@ -81,7 +81,7 @@ void Human::keyPressed(int key) {
 		waitingForArrow = true;
 		myMove = Location(0, 0);
 		break;
-	deflaut:
+	default:
 		waitingForArrow = false;
 		myMove = Location(0, 0);
 		break;

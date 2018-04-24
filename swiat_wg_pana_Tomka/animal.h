@@ -16,6 +16,8 @@ public:
 	virtual int getStrength() { return strength; }
 	virtual void setStrength(int s) { strength = s; };
 	virtual void setStep(int newStep) { step = newStep; }
+	virtual string getInfoForSave() { return to_string(getSymbol()) +" "+ to_string(age)+" " + to_string(step)+
+		" " + to_string(strength)+" "+to_string(getLocation().x)+" "+to_string(getLocation().y)+"\n"; }
 	virtual Location chooseNewLocation(Location fromWhere);
 	virtual Action* action(vector<Organism*>organisms) {
 		return new Moving(chooseNewLocation(getLocation()), vector<Organism*>());
@@ -29,7 +31,7 @@ public:
 	//jest magiczna i sie wywola przed konstruktorem
 	//nawet consty moge to zainicjalizowac,np:
 	/*
-	class Animal : public Organism {
+	class Animal : public Organism { 
 	protected:
 	int step = 1,strength;
 	const int d;
@@ -63,6 +65,11 @@ public:
 	virtual string getName() { return "Turtle"; }
 	virtual const int getInitiative() const { return 1; }
 	virtual char getSymbol() { return 'T'; }
+	virtual string getInfoForSave() {
+		return to_string(getSymbol()) + " " + to_string(age) + " " + to_string(step) +
+			" " + to_string(strength) + " " + to_string(getLocation().x) +
+			" " + to_string(getLocation().y)+" "+to_string(probabilityToMove)+"\n";
+	}
 	virtual Action* action(vector<Organism*>organisms);
 	virtual bool isDeflectingAttack(Organism* attacker) { 
 		if (attacker->getStrength() < 5) return true;
@@ -95,6 +102,11 @@ public:
 	virtual string getName() { return "Human"; }
 	virtual const int getInitiative() const { return 4; }
 	virtual char getSymbol() { return 'H'; }
+	virtual string getInfoForSave() {
+		return to_string(getSymbol()) + " " + to_string(age) + " " + to_string(step) +
+			" " + to_string(strength) + " " + to_string(getLocation().x) + " " + to_string(getLocation().y)+
+			" "+to_string(magicPotion)+" "+to_string(usingSpecialAbility)+" "+to_string(waitingForArrow)+" "+specialAbilityName+"\n";
+	}
 	virtual int getStrength() { return strength + magicPotion; }
 	virtual void keyPressed(int key); 
 	virtual Action* action(vector<Organism*>organisms);

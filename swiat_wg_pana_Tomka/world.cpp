@@ -1,6 +1,11 @@
 #include "world.h"
+#include <iostream>
+#include <fstream>
+using std::cin;
 using std::endl;
 using std::to_string;
+using std::ofstream;
+using std::ifstream;
 void World::gotoxy(int x, int y) {
 	COORD c = { x, y };
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), c);
@@ -8,25 +13,38 @@ void World::gotoxy(int x, int y) {
 
 World::World(int width, int height) : width(width),height(height),fields(width*height) {
 	organisms = organismGenerator::getInitialOrganisms(width, height);
-	writeLog("Anna Przybycien 172126");
 };
+void World::writeLegend() {
+	for (int i = 0; i < 5; i++) {
+		gotoxy(START_X_LEGEND, START_Y_LEGEND + i);
+		if (i == 0)cout << "author: Anna Przybycien 172126";
+		if (i == 1)cout << "arrows - control human";
+		if (i == 2)cout << "s - save game to file";
+		if (i == 3)cout << "l - load game from file";
+		if (i == 4)cout << "esc - end game";
+	}
+}
 void World::writeLog(string log) {
-	//if (numberOfLogs < MAX_NUMBER_Of_LOGS) {
+	if (numberOfLogs < MAX_NUMBER_Of_LOGS) {
 		gotoxy(START_X_LOGS, START_Y_LOGS + World::numberOfLogs);
 		cout << log;
-		//allLogs.push_back(log);
+		allLogs.push_back(log);
 		World::numberOfLogs++;
-	//}
-	//else {
-	//	World::numberOfLogs = 0;
-	//	system("cls");
-	//	gotoxy(20, 3 + World::numberOfLogs);
-	//	cout << log;
-	//	World::numberOfLogs++;
-	//	for (int i = 0; i < numberOfLogs-1; i++)	allLogs.at(allLogs.begin()+i) = allLogs.at(allLogs.begin()+i + 1);
-	//	allLogs[numberOfLogs] = log;
-	//	for (int j = 0; j < numberOfLogs; j++)cout << allLogs.at(j);
-	//}
+	}
+	else {
+		system("cls");
+		writeLegend();
+		writeLog();
+		World::numberOfLogs = 0;
+		allLogs.erase(allLogs.begin());
+		allLogs.push_back(log);
+		for (vector<string>::iterator l = allLogs.begin(); l != allLogs.end(); ++l) {
+			gotoxy(START_X_LOGS, START_Y_LOGS + World::numberOfLogs);
+			cout << *l;
+			World::numberOfLogs++;
+		}
+		drawOrganisms();
+	}
 }
 void World::writeLog() {
 	gotoxy(START_X_LOGS, START_Y_LOGS -1);
@@ -76,6 +94,7 @@ Location* World::handleWorldsEdges(Location *location) {
 bool World::playRound() {
 	//string log;
 	vector<Organism*> tmpOrganisms = World::organisms;//jak w trakcie tury dodam cos do organizmow to nie moge iterowac po czyms do czego dodaje
+	writeLegend();
 	while(!tmpOrganisms.empty()){
 		writeLog();
 		//Organism* organism = tmpOrganisms[0];
@@ -83,11 +102,14 @@ bool World::playRound() {
 		//bool killedOneself = false;
 		drawOrganisms();
 		if (executeActionsAndCheckEndOfGame(tmpOrganisms[0], (tmpOrganisms[0])->action(World::organisms), &tmpOrganisms))return false;
-		numberOfTurns++;
 	}
 	sort(World::organisms.begin(), World::organisms.end(), organismGenerator::compareByInitiativeAndAge);
 	drawOrganisms();
-	if (_getch() == KB_ESCAPE)return false;
+
+	if (manageKeysPressed(_getch())) {
+		killAllOrganisms();
+		return false;
+	}
 	else return true;
 }
 bool World::executeActionsAndCheckEndOfGame(Organism* organism, Action* action, vector<Organism*> *tmpOrganisms) {
@@ -117,16 +139,67 @@ bool World::executeActionsAndCheckEndOfGame(Organism* organism, Action* action, 
 				World::organisms.push_back(newOrganism);
 				canSpread = true;
 			}
+			else canSpread = false;
 		}
 	}
 	if (action->isActivatingSpecialAbility()) {
 		writeLog(organism->getName() + " just activated " + action->getAbility());
 	}
 	tmpOrganisms->erase(tmpOrganisms->begin());
-	if (!(action->isDoingNothing()) && canSpread ) { if (_getch() == KB_ESCAPE) return true; }
+	if (!(action->isDoingNothing()) && canSpread ) {
+		numberOfTurns++;
+		if (manageKeysPressed(_getch())) return true; }
 	delete action;
 	if (!killedOneself)organism->growOlder();
 	return false;
+}
+bool World::manageKeysPressed(int key) {
+	switch (key) {
+	case KB_ESCAPE:
+		return true;
+		break;
+	case 's':
+		saveToFile();
+		break;
+	case 'l':
+		//loadFromFile();
+		break;
+	default:
+		break;
+	}
+	return false;
+};
+void World::saveToFile() {
+	ofstream out(readNameOfFile());
+	out << width <<" "<<height<<"\n";
+	for (vector<Organism*>::iterator i = organisms.begin(); i != organisms.end(); ++i) {
+		string info= (*i)->getInfoForSave();//to_string na char zrobi decimala
+		out << info;
+	}
+	out.close();
+
+}
+string World::readNameOfFile() {
+	writeLog("Name of file: ");
+	string nameOfFile;
+	writeLog("");//zeby zejsc jeden w dol
+	cin >> nameOfFile;
+	nameOfFile = "C:\\Users\\aniap\\source\\repos\\swiat_wg_pana_Tomka\\" + nameOfFile + ".txt";
+	return nameOfFile;
+}
+void World::loadFromFile() {
+	ifstream newWorld(readNameOfFile());
+	if (newWorld.is_open()) {
+		killAllOrganisms();
+		newWorld >> width >> height;
+		char symbolOfNewOrganism;
+		Organism* newOrganism;
+		while (newWorld >> symbolOfNewOrganism) {
+			newOrganism=organismGenerator::getOrganism(symbolOfNewOrganism);
+			newOrganism->getStatsFromFile();
+			organisms.push_back(newOrganism);
+		}
+	}
 }
 bool World::executeCollisionsAndCheckIfKilledOneself(Organism* organism, Action* collision, Organism* organismAlreadyThere, vector<Organism*>*tmpOrganisms) {
 	bool killedOneself = false;
@@ -213,8 +286,10 @@ int World::getPositionInVector(Organism* victim, vector<Organism*> organisms) {
 	}
 	return -1;//nie ma go w tym vectorze
 }
-World::~World() {
+void World::killAllOrganisms() {
 	for (vector<Organism*>::iterator i = organisms.begin(); i != organisms.end(); ++i) {
 		delete *i;
+		organisms.erase(organisms.begin());
 	}
 }
+
