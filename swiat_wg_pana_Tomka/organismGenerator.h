@@ -25,7 +25,7 @@ public:
 	}
 
 	static vector<Organism*> getInitialOrganisms(int width, int height) {
-		string allSymbols = "ggdduuuussbb";//bardzo wazny string
+		string allSymbols = "WWAATTSSFFggdduusssssssssbb";//bardzo wazny string
 		vector<Organism*> initialOrganisms;
 		for (int i = 0; i < allSymbols.size(); i++) {//tutaj robie po jednym kazdego rodzaju
 			initialOrganisms.push_back(getOrganism(allSymbols[i]));

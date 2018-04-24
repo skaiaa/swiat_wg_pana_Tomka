@@ -25,6 +25,7 @@ private:
 	vector<Organism*> organisms;//multiset<Organism*>
 	int numberOfLogs = 0, numberOfTurns=0;
 	vector<string> allLogs;
+	bool newWorldLoading = false;
 protected:
 public:
 	World(int width, int height);

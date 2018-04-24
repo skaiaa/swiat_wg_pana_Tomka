@@ -15,7 +15,17 @@ public:
 	virtual int getStrength() { return 0; }
 	virtual void setStrength(int s) { };
 	virtual string getInfoForSave() {
-		return to_string(getSymbol()) + " " + to_string(spreadingProbability) +" "+to_string(getLocation().x)+" "+to_string(getLocation().y)+"\n";
+		return to_string(age)+" "+to_string(spreadingProbability) +" "+to_string(getLocation().x)+" "+to_string(getLocation().y)+"\n";
+	}
+	virtual void getStatsFromFile(stringstream& line) {
+		for (int i = 0;; i++) {
+			if (i == 0)line >> age;
+			if (i == 1)line >> spreadingProbability;
+			if (i == 2)line >> location.x;
+			if (i == 3)line >> location.y;
+			if (i>3)
+				break;
+		}
 	}
 	virtual Location chooseNewLocation(Location fromWhere) {
 		Location changeInLocation(0, 0);

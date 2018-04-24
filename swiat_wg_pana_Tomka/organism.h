@@ -11,14 +11,15 @@ using std::vector;
 using std::exception;
 using std::cout;
 using std::to_string;
+using std::ifstream;
+using std::stringstream;
 
 class Organism {
-private:
-	
-	Location location = Location(-1, -1);//zeby mi getFreeAndRandomLocation dzialalo za pierwszym razem
-	//vector, albo jeden komentator(komentator obserwuje organizmy, a human obserwuje swiat
-	//komentator dostaje stringa z opisem akcji w akcji organizmu
 protected:
+
+	Location location = Location(-1, -1);//zeby mi getFreeAndRandomLocation dzialalo za pierwszym razem
+										 //vector, albo jeden komentator(komentator obserwuje organizmy, a human obserwuje swiat
+										 //komentator dostaje stringa z opisem akcji w akcji organizmu
 	int age = 0;
 public:
 	virtual Action* action(vector<Organism*>organisms) = 0;
@@ -33,10 +34,11 @@ public:
 	virtual void growOlder() { age++; }
 	//virtual void registerObserver(Commentator commentator)=0;
 	virtual const int getInitiative() const = 0;
-	virtual char getSymbol() { return 'o'; };
+	virtual char getSymbol() =0;
 	virtual int getStrength() = 0;
 	virtual void setStrength(int s) = 0;
-	virtual string getInfoForSave() { return to_string(getSymbol())+to_string(age)+"\n"; }
+	virtual string getInfoForSave() = 0;
+	virtual void getStatsFromFile(stringstream& line) = 0;
 	//bede zwracac nowe akcje, potem je kasowac(delete) w worldzie po wykonaniu akcji
 	virtual Action* collision(Organism* collider,Location where) = 0;
 	

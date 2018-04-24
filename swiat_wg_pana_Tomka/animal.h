@@ -1,6 +1,7 @@
 #ifndef ANIMAL_H
 #define ANIMAL_H
 #include <iostream>
+#include <sstream>
 #include "organism.h"
 #include <conio.h>
 #define KB_UP 72//dla czlowieka, zeby wiedzial, gdzie isc
@@ -16,8 +17,21 @@ public:
 	virtual int getStrength() { return strength; }
 	virtual void setStrength(int s) { strength = s; };
 	virtual void setStep(int newStep) { step = newStep; }
-	virtual string getInfoForSave() { return to_string(getSymbol()) +" "+ to_string(age)+" " + to_string(step)+
+	virtual string getInfoForSave() { return to_string(age)+" " + to_string(step)+
 		" " + to_string(strength)+" "+to_string(getLocation().x)+" "+to_string(getLocation().y)+"\n"; }
+	virtual void getStatsFromFile(stringstream& line) {
+		for(int i=0;;i++){
+			if (i == 0)line >> age;
+			if( i == 1)line >> step;
+			if (i == 2)line >> strength;
+			if (i == 3)line >> location.x;
+			if (i == 4)line >> location.y;
+			if (i>4)
+				break;
+			//std::cout << "Found integer: " << n << "\n";
+		}
+
+	}
 	virtual Location chooseNewLocation(Location fromWhere);
 	virtual Action* action(vector<Organism*>organisms) {
 		return new Moving(chooseNewLocation(getLocation()), vector<Organism*>());
@@ -66,9 +80,22 @@ public:
 	virtual const int getInitiative() const { return 1; }
 	virtual char getSymbol() { return 'T'; }
 	virtual string getInfoForSave() {
-		return to_string(getSymbol()) + " " + to_string(age) + " " + to_string(step) +
+		return to_string(age) + " " + to_string(step) +
 			" " + to_string(strength) + " " + to_string(getLocation().x) +
 			" " + to_string(getLocation().y)+" "+to_string(probabilityToMove)+"\n";
+	}
+	virtual void getStatsFromFile(stringstream& line) {
+		for (int i = 0;; i++) {
+			if (i == 0)line >> age;
+			if (i == 1)line >> step;
+			if (i == 2)line >> strength;
+			if (i == 3)line >> location.x;
+			if (i == 4)line >> location.y;
+			if (i == 5)line >> probabilityToMove;
+			if (i>5)
+				break;
+			//std::cout << "Found integer: " << n << "\n";
+		}
 	}
 	virtual Action* action(vector<Organism*>organisms);
 	virtual bool isDeflectingAttack(Organism* attacker) { 
@@ -103,9 +130,24 @@ public:
 	virtual const int getInitiative() const { return 4; }
 	virtual char getSymbol() { return 'H'; }
 	virtual string getInfoForSave() {
-		return to_string(getSymbol()) + " " + to_string(age) + " " + to_string(step) +
+		return to_string(age) + " " + to_string(step) +
 			" " + to_string(strength) + " " + to_string(getLocation().x) + " " + to_string(getLocation().y)+
-			" "+to_string(magicPotion)+" "+to_string(usingSpecialAbility)+" "+to_string(waitingForArrow)+" "+specialAbilityName+"\n";
+			" "+to_string(magicPotion)+" "+to_string(usingSpecialAbility)+" "+to_string(waitingForArrow)+"\n";
+	}
+	virtual void getStatsFromFile(stringstream& line){
+		for (int i = 0;; i++) {
+			if (i == 0)line >> age;
+			if (i == 1)line >> step;
+			if (i == 2)line >> strength;
+			if (i == 3)line >> location.x;
+			if (i == 4)line >> location.y;
+			if (i == 5)line >> magicPotion;
+			if (i == 6)line >> usingSpecialAbility;
+			if (i>6)
+				break;
+			//jeszcze waiting for arrow
+			//std::cout << "Found integer: " << n << "\n";
+		}
 	}
 	virtual int getStrength() { return strength + magicPotion; }
 	virtual void keyPressed(int key); 

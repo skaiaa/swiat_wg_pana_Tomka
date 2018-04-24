@@ -1,11 +1,13 @@
 #include "world.h"
 #include <iostream>
 #include <fstream>
+#include <sstream>
 using std::cin;
 using std::endl;
 using std::to_string;
 using std::ofstream;
 using std::ifstream;
+using std::stringstream;
 void World::gotoxy(int x, int y) {
 	COORD c = { x, y };
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), c);
@@ -98,6 +100,10 @@ bool World::playRound() {
 	while(!tmpOrganisms.empty()){
 		writeLog();
 		//Organism* organism = tmpOrganisms[0];
+		if (newWorldLoading) {
+			newWorldLoading = false;
+			break;
+		}
 		if ((tmpOrganisms[0])->getSymbol() == 'H')writeLog("Your turn!");
 		//bool killedOneself = false;
 		drawOrganisms();
@@ -106,11 +112,11 @@ bool World::playRound() {
 	sort(World::organisms.begin(), World::organisms.end(), organismGenerator::compareByInitiativeAndAge);
 	drawOrganisms();
 
-	if (manageKeysPressed(_getch())) {
+	/*if (manageKeysPressed(_getch())) {
 		killAllOrganisms();
 		return false;
-	}
-	else return true;
+	}*/
+	return true;
 }
 bool World::executeActionsAndCheckEndOfGame(Organism* organism, Action* action, vector<Organism*> *tmpOrganisms) {
 	bool killedOneself = false;
@@ -137,20 +143,20 @@ bool World::executeActionsAndCheckEndOfGame(Organism* organism, Action* action, 
 				newOrganism->setLocation(location);
 				writeLog(organism->getName() + " is spreading to " + to_string(location.y) + " " + to_string(location.x));
 				World::organisms.push_back(newOrganism);
-				canSpread = true;
 			}
-			else canSpread = false;
+			else writeLog(organism->getName() + " failed in spreading to " + to_string(location.y) + " " + to_string(location.x));
 		}
 	}
 	if (action->isActivatingSpecialAbility()) {
 		writeLog(organism->getName() + " just activated " + action->getAbility());
 	}
 	tmpOrganisms->erase(tmpOrganisms->begin());
-	if (!(action->isDoingNothing()) && canSpread ) {
+	if (!(action->isDoingNothing())) {
 		numberOfTurns++;
-		if (manageKeysPressed(_getch())) return true; }
+		if (manageKeysPressed(_getch())) return true;
+	}
 	delete action;
-	if (!killedOneself)organism->growOlder();
+	if (!killedOneself && !newWorldLoading) organism->growOlder();
 	return false;
 }
 bool World::manageKeysPressed(int key) {
@@ -162,7 +168,7 @@ bool World::manageKeysPressed(int key) {
 		saveToFile();
 		break;
 	case 'l':
-		//loadFromFile();
+		loadFromFile();
 		break;
 	default:
 		break;
@@ -174,6 +180,7 @@ void World::saveToFile() {
 	out << width <<" "<<height<<"\n";
 	for (vector<Organism*>::iterator i = organisms.begin(); i != organisms.end(); ++i) {
 		string info= (*i)->getInfoForSave();//to_string na char zrobi decimala
+		out << (*i)->getSymbol() << " ";
 		out << info;
 	}
 	out.close();
@@ -182,7 +189,8 @@ void World::saveToFile() {
 string World::readNameOfFile() {
 	writeLog("Name of file: ");
 	string nameOfFile;
-	writeLog("");//zeby zejsc jeden w dol
+	gotoxy(START_X_LOGS, START_Y_LOGS + numberOfLogs);
+	//writeLog("");//zeby zejsc jeden w dol
 	cin >> nameOfFile;
 	nameOfFile = "C:\\Users\\aniap\\source\\repos\\swiat_wg_pana_Tomka\\" + nameOfFile + ".txt";
 	return nameOfFile;
@@ -190,15 +198,21 @@ string World::readNameOfFile() {
 void World::loadFromFile() {
 	ifstream newWorld(readNameOfFile());
 	if (newWorld.is_open()) {
+		newWorldLoading = true;
 		killAllOrganisms();
 		newWorld >> width >> height;
-		char symbolOfNewOrganism;
+		string line;
+		std::getline(newWorld, line);
 		Organism* newOrganism;
-		while (newWorld >> symbolOfNewOrganism) {
-			newOrganism=organismGenerator::getOrganism(symbolOfNewOrganism);
-			newOrganism->getStatsFromFile();
+		while (std::getline(newWorld, line))
+		{
+			newOrganism = organismGenerator::getOrganism(line[0]);
+			line.erase(line.begin());
+			stringstream stats(line);
+			newOrganism->getStatsFromFile(stats);
+			//sczytaj staty ze strinu line dla organizmów
 			organisms.push_back(newOrganism);
-		}
+		}			
 	}
 }
 bool World::executeCollisionsAndCheckIfKilledOneself(Organism* organism, Action* collision, Organism* organismAlreadyThere, vector<Organism*>*tmpOrganisms) {
@@ -289,7 +303,7 @@ int World::getPositionInVector(Organism* victim, vector<Organism*> organisms) {
 void World::killAllOrganisms() {
 	for (vector<Organism*>::iterator i = organisms.begin(); i != organisms.end(); ++i) {
 		delete *i;
-		organisms.erase(organisms.begin());
 	}
+	organisms.clear();
 }
 
