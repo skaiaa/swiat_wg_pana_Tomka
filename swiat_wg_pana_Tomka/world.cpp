@@ -144,7 +144,7 @@ bool World::executeActionsAndCheckEndOfGame(Organism* organism, Action* action, 
 				writeLog(organism->getName() + " is spreading to " + to_string(location.y) + " " + to_string(location.x));
 				World::organisms.push_back(newOrganism);
 			}
-			else writeLog(organism->getName() + " failed in spreading to " + to_string(location.y) + " " + to_string(location.x));
+			//else writeLog(organism->getName() + " failed in spreading to " + to_string(location.y) + " " + to_string(location.x));
 		}
 	}
 	if (action->isActivatingSpecialAbility()) {
@@ -305,5 +305,8 @@ void World::killAllOrganisms() {
 		delete *i;
 	}
 	organisms.clear();
+}
+World::~World() {
+	killAllOrganisms();
 }
 

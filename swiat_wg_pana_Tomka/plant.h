@@ -59,7 +59,7 @@ public:
 		//z nia i z pustym vectorem do zabicia
 		//uwaga na brzegi planszy!!!
 		//jesli sie nie da to zwracam DoNothing()
-		return new DoNothing();
+		return new DoNothing;
 	}
 	virtual Action* collision(Organism* collider, Location where) {
 		return new DoNothing;

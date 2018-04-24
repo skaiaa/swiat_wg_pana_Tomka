@@ -46,6 +46,7 @@ public:
 	void saveToFile();
 	void loadFromFile();
 	void killAllOrganisms();
+	~World();
 
 };
 #endif 
